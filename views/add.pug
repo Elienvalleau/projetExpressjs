@@ -1,0 +1,11 @@
+doctype html
+html
+    head
+        title #{title}
+    body
+        h1 Add
+        form(method='POST' action='/todos/')
+            div.form-group
+                label(for='message') Message :
+                input#message.form-control(type='textarea', placeholder='Message' name='message')
+            button.btn.btn-primary(type='submit') Envoyer

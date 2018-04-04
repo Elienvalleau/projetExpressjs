@@ -1,0 +1,21 @@
+doctype html
+html
+    head
+        title #{title}
+    body
+        h1 Index
+        div todos
+            <br>
+            //a(href='?limit=20&offset=0') Afficher les taches
+            //<br>
+            //a(href='?completion=done') Afficher les taches terminées
+            //<br>
+            a(href='/todos/add') Ajouter une tache
+        ul
+            each todo in todos
+                li #{todo.dataValues.message}, Completion = #{todo.dataValues.completion},
+                        a(href='/todos/' + todo.dataValues.id + '/edit') Editer
+                        <br>
+                        a(href='/todos/' + todo.dataValues.id) Afficher
+                        form(method='POST' action='/todos/' + todo.dataValues.id + '?_method=DELETE')
+                            button.btn.btn-primary(type='submit') Supprimer

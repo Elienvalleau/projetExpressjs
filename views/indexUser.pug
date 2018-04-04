@@ -1,0 +1,21 @@
+doctype html
+html
+    head
+        title #{title}
+    body
+        h1 Index
+        div users
+            <br>
+            a(href='/todos') Voir les todos
+            <br>
+            a(href='/users/login') Login
+            <br>
+            a(href='/users/add') Ajouter un utilisateur
+        ul
+            each user in users
+                li #{user.dataValues.nom}
+                        a(href='/users/' + user.dataValues.id + '/edit') Editer
+                        <br>
+                        a(href='/users/' + user.dataValues.id) Afficher
+                        form(method='POST' action='/users/' + user.dataValues.id + '?_method=DELETE')
+                            button.btn.btn-primary(type='submit') Supprimer

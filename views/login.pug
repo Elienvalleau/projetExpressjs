@@ -1,0 +1,13 @@
+doctype html
+html
+    head
+        title #{title}
+    body
+        h1 Add
+        form(method='POST' action='/users/login')
+            div.form-group
+                label(for='nom') Nom :
+                input#nom.form-control(type='textarea', placeholder='Nom' name='nom')
+                label(for='password') Password :
+                input#password.form-control(type='textarea', placeholder='Password' name='password')
+            button.btn.btn-primary(type='submit') Envoyer
