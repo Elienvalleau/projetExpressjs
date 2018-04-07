@@ -36,38 +36,51 @@ router.get('/', (req, res, next) => {
   const tplIndexPath = './views/indexUser.pug';
   const renderIndex = pug.compileFile(tplIndexPath);
 
-
   if(res.get('Accept') === 'application/json'){
     res.type('json');
   }else{
     res.type('html');
   }
 
-  users.findAll().then( (result) =>
-  res.format({
-    html: () => {
-      const html = renderIndex({
-        title: 'Users',
-        users: result
-      });
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html);
-      res.end();},
-    json: (result) => { res.json(result) }
-  }));
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else {
+    users.findAll().then( (result) =>
+    res.format({
+      html: () => {
+        const html = renderIndex({
+          title: 'Users',
+          users: result
+        });
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html);
+        res.end();},
+      json: (result) => { res.json(result) }
+    }));
+  }
+
 
 });
 
 router.post('/login', (req, res, next) => {
-
-  // users.find({
-  //   where: {
-  //     id: req.body.id
-  //   }
-  // }).then( (result) => {
-  //
-  //   req.session.userLog = req.body.id;
-  // })
+  users.find({
+    where: {
+      nom: req.body.nom
+    }
+  }).then( (result) => {
+    bcrypt.compare(req.body.password, result.password, function(err, resu) {
+      if(resu === true){
+        console.log("connection réussie");
+        req.session.userLog = result.id;
+        res.redirect('/users')
+      }
+      else{
+        console.log("mot de passe incorrect");
+        res.redirect('/users/login')
+      }
+    });
+  })
 });
 
 router.get('/login', (req, res, next) => {
@@ -94,6 +107,11 @@ router.get('/login', (req, res, next) => {
 
 });
 
+router.get('/logout', (req, res, next) => {
+  req.session.destroy();
+  res.redirect('/users');
+});
+
 router.get('/add', (req, res, next) => {
   const tplIndexPath = './views/addUser.pug';
   const renderIndex = pug.compileFile(tplIndexPath);
@@ -107,14 +125,18 @@ router.get('/add', (req, res, next) => {
     res.type('html');
   }
 
-  res.format({
-    html: () => {
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html); },
-    json: (result) => { res.json(result) }
-  });
-
-  res.end();
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else{
+    res.format({
+      html: () => {
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html); },
+      json: (result) => { res.json(result) }
+    });
+    res.end();
+  }
 });
 
 router.get('/:userId', (req, res, next) => {
@@ -127,27 +149,31 @@ router.get('/:userId', (req, res, next) => {
     res.type('html');
   }
 
-  users.find({
-    where: {
-      id: req.params.userId
-    }
-  }).then( (result) =>
-  res.format({
-    html: () => {
-      const html = renderIndex({
-        title: 'show',
-        resultName: result.nom,
-        resultDateCre: result.createdAt,
-        resultDateUpd: result.updateddAt,
-      });
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else{
+    users.find({
+      where: {
+        id: req.params.userId
+      }
+    }).then( (result) =>
+    res.format({
+      html: () => {
+        const html = renderIndex({
+          title: 'show',
+          resultName: result.nom,
+          resultDateCre: result.createdAt,
+          resultDateUpd: result.updateddAt,
+        });
 
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html);
-      res.end();},
-    json: (result) => { res.json(result) }
-  })
-  );
-
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html);
+        res.end();},
+      json: (result) => { res.json(result) }
+    })
+    );
+  }
 });
 
 
@@ -210,25 +236,29 @@ router.get('/:userId/edit', (req, res, next) => {
     res.type('html');
   }
 
-  users.find({
-    where: {
-      id: req.params.userId
-    }
-  }).then( (result) =>
-  res.format({
-    html: () => {
-      const html = renderIndex({
-        title: 'edit',
-        user: result,
-      });
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else{
+    users.find({
+      where: {
+        id: req.params.userId
+      }
+    }).then( (result) =>
+    res.format({
+      html: () => {
+        const html = renderIndex({
+          title: 'edit',
+          user: result,
+        });
 
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html);
-      res.end();},
-    json: (result) => { res.json(result) }
-  })
-  );
-
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html);
+        res.end();},
+      json: (result) => { res.json(result) }
+    })
+    );
+  }
 });
 
 module.exports = router;

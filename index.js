@@ -8,7 +8,8 @@ const PORT = process.env.PORT || 8888;
 const methodOverride = require('method-override');
 const session = require('express-session');
 
-app.use(session({secret: "secret"}));
+app.use(session({ secret: 'superSecret', cookie: { maxAge: 60000 }}));
+
 
 app.listen(PORT, () => {
   console.log('Serveur sur port : ', PORT)
@@ -23,6 +24,10 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use(methodOverride('_method'));
+
+app.get('/', (req, res, next) => {
+  res.redirect('/users')
+});
 
 app.all('*', (req, res, next) => {
   next();

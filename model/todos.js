@@ -9,6 +9,7 @@ const todos = db.define("todos", {
   },
   message: Sequelize.STRING,
   completion: Sequelize.BOOLEAN,
+  idUser: Sequelize.INTEGER,
   createdAt: Sequelize.DATE,
   updateddAt: Sequelize.DATE
 });

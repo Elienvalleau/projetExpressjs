@@ -16,6 +16,7 @@ router.post('/', (req, res, next) => {
     todos.create({
       message: req.body.message,
       completion: false,
+      idUser: req.session.userLog,
       createdAt: new Date()
     }).then( () =>
     res.format({
@@ -34,27 +35,33 @@ router.get('/', (req, res, next) => {
   const tplIndexPath = './views/index.pug';
   const renderIndex = pug.compileFile(tplIndexPath);
 
-
   if(res.get('Accept') === 'application/json'){
     res.type('json');
   }else{
     res.type('html');
   }
 
-  todos.findAll().then( (result) =>
-  res.format({
-    html: () => {
-      const html = renderIndex({
-        title: 'todos',
-        todos: result
-      });
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html);
-      res.end();},
-    json: (result) => { res.json(result) }
-  }));
-
-  // res.end();
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else{
+    todos.findAll({
+      where: {
+        idUser: req.session.userLog,
+      }
+    }).then( (result) =>
+    res.format({
+      html: () => {
+        const html = renderIndex({
+          title: 'todos',
+          todos: result
+        });
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html);
+        res.end();},
+      json: (result) => { res.json(result) }
+    }));
+  }
 });
 
 router.get('/add', (req, res, next) => {
@@ -70,14 +77,19 @@ router.get('/add', (req, res, next) => {
     res.type('html');
   }
 
-  res.format({
-    html: () => {
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html); },
-    json: (result) => { res.json(result) }
-  });
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else{
+    res.format({
+      html: () => {
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html); },
+      json: (result) => { res.json(result) }
+    });
 
-  res.end();
+    res.end();
+  }
 });
 
 router.get('/:todoId', (req, res, next) => {
@@ -90,48 +102,34 @@ router.get('/:todoId', (req, res, next) => {
     res.type('html');
   }
 
-  todos.find({
-    where: {
-      id: req.params.todoId
-    }
-  }).then( (result) =>
-  res.format({
-    html: () => {
-      const html = renderIndex({
-        title: 'show',
-        resultMessage: result.message,
-        resultCompletion: result.completion,
-        resultDateCre: result.createdAt,
-        resultDateUpd: result.updateddAt,
-      });
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else{
+    todos.find({
+      where: {
+        id: req.params.todoId
+      }
+    }).then( (result) =>
+    res.format({
+      html: () => {
+        const html = renderIndex({
+          title: 'show',
+          resultMessage: result.message,
+          resultCompletion: result.completion,
+          resultDateCre: result.createdAt,
+          resultDateUpd: result.updateddAt,
+        });
 
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html);
-      res.end();},
-    json: (result) => { res.json(result) }
-  })
-  );
-
-  // res.send('GET /todos/:todoId')
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html);
+        res.end();},
+      json: (result) => { res.json(result) }
+    })
+    );
+  }
 });
 
-// router.get('?limit=20&offset=0', (req, res, next) => {
-//
-//   if(res.get('Accept') === 'application/json'){
-//     res.type('json');
-//   }else {
-//     res.type('html');
-//   }
-//
-//   todos.all().then(() =>
-//   res.format({
-//     html: () => {
-//     },
-//     json: (result) => { res.json(result) }
-//   })
-//   );
-//   // res.send('GET /users')
-// });
 
 router.delete('/:todoId', (req, res, next) => {
 
@@ -152,7 +150,6 @@ router.delete('/:todoId', (req, res, next) => {
     json: () => { res.send({ message: 'success !' }) }
   })
   );
-  // res.end();
 });
 
 
@@ -182,25 +179,6 @@ router.patch('/:todoId', (req, res, next) => {
   }));
 });
 
-// router.get('?completion=done', (req, res, next) => {
-//
-//   if(res.get('Accept') === 'application/json'){
-//     res.type('json');
-//   }else {
-//     res.type('html');
-//   }
-//
-//   todos.findAll({
-//     where: {
-//       completion: true
-//     }
-//   }).then(()=>
-//   res.format({
-//     html: () => {
-//     },
-//     json: (result) => { res.json(result) }
-//   }))
-// });
 
 router.get('/:todoId/edit', (req, res, next) => {
   const tplIndexPath = './views/edit.pug';
@@ -212,25 +190,29 @@ router.get('/:todoId/edit', (req, res, next) => {
     res.type('html');
   }
 
-  todos.find({
-    where: {
-      id: req.params.todoId
-    }
-  }).then( (result) =>
-  res.format({
-    html: () => {
-      const html = renderIndex({
-        title: 'edit',
-        todo: result,
-      });
+  if (!req.session.userLog) {
+    res.redirect('/users/login');
+  }
+  else{
+    todos.find({
+      where: {
+        id: req.params.todoId
+      }
+    }).then( (result) =>
+    res.format({
+      html: () => {
+        const html = renderIndex({
+          title: 'edit',
+          todo: result,
+        });
 
-      res.writeHead(200, { 'Content-Type': 'text/html' } );
-      res.write(html);
-      res.end();},
-    json: (result) => { res.json(result) }
-  })
-  );
-
+        res.writeHead(200, { 'Content-Type': 'text/html' } );
+        res.write(html);
+        res.end();},
+      json: (result) => { res.json(result) }
+    })
+    );
+  }
 });
 
 module.exports = router;
